@@ -35,3 +35,11 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_executable(${CMAKE_PROJECT_NAME} ${sources})
 target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL} ${OPENGL_gl_LIBRARY})
+
+# copy font file to the build directory
+add_custom_command(
+        TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/verdana.ttf
+                ${CMAKE_CURRENT_BINARY_DIR}/verdana.ttf
+                )
