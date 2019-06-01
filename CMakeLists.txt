@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 
 project(sdl-imgui)
 
-find_package(OpenGL)
+# for filesystem functionality from C++17
+set(CMAKE_CXX_STANDARD 17)
+
+find_package(OpenGL REQUIRED)
 
 if (WIN32)
     set(WHERE-IS-SDL "e:/tools/sdl/lib/x64")
@@ -15,20 +18,23 @@ if (APPLE)
 endif()
 
 if(UNIX AND NOT APPLE)
-    # same thing for Linux
+    find_package(SDL2 REQUIRED)
+    include_directories(${SDL2_INCLUDE_DIRS})
 endif()
 
 #message(${WHERE-IS-SDL})
 #message(${WHERE-IS-SDL-HEADERS})
 
-find_library(SDL SDL2 PATHS ${WHERE-IS-SDL})
-if (WIN32)
-    find_library(SDLmain SDL2main PATHS ${WHERE-IS-SDL})
-endif()
+if (WIN32 OR APPLE)
+    find_library(SDL SDL2 PATHS ${WHERE-IS-SDL})
+    if (WIN32)
+        find_library(SDLmain SDL2main PATHS ${WHERE-IS-SDL})
+    endif()
 
-include_directories(
-    "${WHERE-IS-SDL-HEADERS}"
+    include_directories(
+        "${WHERE-IS-SDL-HEADERS}"
     )
+endif()
 
 # your sources
 set(sources
@@ -49,15 +55,17 @@ set(sources
     imgui/imgui_impl_sdl.h
 )
 
-# for filesystem functionality from C++17
-set(CMAKE_CXX_STANDARD 17)
-
 if (WIN32)
     add_executable(${CMAKE_PROJECT_NAME} WIN32 ${sources})
     target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL} ${SDLmain} ${OPENGL_gl_LIBRARY})
 else()
     add_executable(${CMAKE_PROJECT_NAME} ${sources})
-    target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL} ${OPENGL_gl_LIBRARY})
+    if (APPLE)
+        target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL} ${OPENGL_gl_LIBRARY})
+    endif()
+    if (UNIX AND NOT APPLE)
+        target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL2_LIBRARIES} ${OPENGL_gl_LIBRARY})
+    endif()
 endif()
 
 # copy font file to the build directory

@@ -68,9 +68,10 @@ int main(int argc, char *argv[])
     SDL_SetWindowMinimumSize(window, 500, 300);
     
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-    SDL_GL_SetSwapInterval(1); // Enable vsync
+    // enable VSync
+    SDL_GL_SetSwapInterval(1);
 
-    // Setup Dear ImGui context
+    // setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -78,17 +79,18 @@ int main(int argc, char *argv[])
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
     io.Fonts->AddFontFromFileTTF("verdana.ttf", 18.0f, NULL, NULL);
 
-    // Setup Dear ImGui style
+    // setup Dear ImGui style
     //ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic();
     setImGuiStyle();
 
-    // Setup Platform/Renderer bindings
+    // setup platform/renderer bindings
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL2_Init();
 
     bool show_demo_window = false;
     bool show_another_window = false;
+    // colors are set in RGBA, but as float
     ImVec4 background = ImVec4(35/255.0f, 35/255.0f, 35/255.0f, 1.00f);
 
     bool loop = true;
@@ -97,9 +99,6 @@ int main(int argc, char *argv[])
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            float x = static_cast<float>(event.motion.x),
-                  y = static_cast<float>(event.motion.y);
-
             switch (event.type)
             {
             case SDL_QUIT:
@@ -113,12 +112,6 @@ int main(int argc, char *argv[])
                     loop = false;
                     break;
                 }
-                break;
-
-            case SDL_MOUSEWHEEL:
-                int mouseX;
-                int mouseY;
-                SDL_GetMouseState(&mouseX, &mouseY);
                 break;
             }
         }
@@ -134,13 +127,18 @@ int main(int argc, char *argv[])
         // a window is defined by Begin/End pair
         {
             static int counter = 0;
+
             int sdl_width = 0, sdl_height = 0, controls_width = 0;
+            // get the window size as a base for calculating widgets geometry
             SDL_GetWindowSize(window, &sdl_width, &sdl_height);
-            
             controls_width = sdl_width;
+            // make controls widget width to be 1/3 of the main window width
             if ((controls_width /= 3) < 300) { controls_width = 300; }
 
+            // position the controls widget in the top-right corner with some margin
             ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+            // here we set the calculated width and also make the height to be
+            // be the height of the main window also with some margin
             ImGui::SetNextWindowSize(
                 ImVec2(static_cast<float>(controls_width), static_cast<float>(sdl_height - 20)),
                 ImGuiCond_Always
@@ -154,7 +152,7 @@ int main(int argc, char *argv[])
 
             ImGui::Dummy(ImVec2(0.0f, 3.0f));
             ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), "Platform");
-            ImGui::Text(SDL_GetPlatform());
+            ImGui::Text("%s", SDL_GetPlatform());
             ImGui::Text("CPU cores: %d", SDL_GetCPUCount());
             ImGui::Text("RAM: %.2f GB", SDL_GetSystemRAM() / 1024.0f);
 
@@ -165,8 +163,8 @@ int main(int argc, char *argv[])
 
             ImGui::Dummy(ImVec2(0.0f, 3.0f));
             ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), "SDL");
-            ImGui::Text(compiledVal.str().c_str());
-            ImGui::Text(linkedVal.str().c_str());
+            ImGui::Text("%s", compiledVal.str().c_str());
+            ImGui::Text("%s", linkedVal.str().c_str());
 
             ImGui::Dummy(ImVec2(0.0f, 10.0f));
             ImGui::Separator();
@@ -238,7 +236,7 @@ int main(int argc, char *argv[])
             ImGui::End();
         }
 
-        // Rendering
+        // rendering
         ImGui::Render();
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
         glClearColor(
@@ -248,7 +246,7 @@ int main(int argc, char *argv[])
             background.w
             );
         glClear(GL_COLOR_BUFFER_BIT);
-        //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound
+        //glUseProgram(0); // you may want this if using this code in an OpenGL 3+ context where shaders may be bound
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
         SDL_GL_SwapWindow(window);
     }
