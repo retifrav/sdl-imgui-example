@@ -4,7 +4,7 @@
 #define _CRT_SECURE_NO_DEPRECATE
 
 // C++
-#include <filesystem>
+//#include <filesystem>
 #include <vector>
 
 // SDL
@@ -22,14 +22,14 @@ int main(int argc, char *argv[])
 {
     std::cout << "[" << currentTime(std::chrono::system_clock::now()) << "] " << "Start\n- - -\n\n";
 
-    std::vector<std::string> files;
-    auto currentPath = std::filesystem::current_path();
-    //std::cout << currentPath.string();
-    for (const auto &entry : std::filesystem::directory_iterator(currentPath))
-    {
-        files.push_back(entry.path().filename().string().data());
-        //std::cout << entry.path().filename() << std::endl;
-    }
+    // std::vector<std::string> files;
+    // auto currentPath = std::filesystem::current_path();
+    // //std::cout << currentPath.string();
+    // for (const auto &entry : std::filesystem::directory_iterator(currentPath))
+    // {
+    //     files.push_back(entry.path().filename().string().data());
+    //     //std::cout << entry.path().filename() << std::endl;
+    // }
 
     // initiate SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
@@ -209,19 +209,19 @@ int main(int argc, char *argv[])
                 ImGui::Dummy(ImVec2(0.0f, 1.0f));
                 ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), "Files in the current folder");
                                 
-                ImGui::TextColored(ImVec4(128 / 255.0f, 128 / 255.0f, 128 / 255.0f, 1.0f), "%s", currentPath.string().data());
+                //ImGui::TextColored(ImVec4(128 / 255.0f, 128 / 255.0f, 128 / 255.0f, 1.0f), "%s", currentPath.string().data());
                 ImGui::Dummy(ImVec2(0.0f, 0.5f));
 
-                static int currentFile = 0;
-                ImVec2 windowSize = ImGui::GetWindowSize();
-                ImGui::PushItemWidth(windowSize.x - 15);
-                ImGui::ListBox(
-                    "",
-                    &currentFile,
-                    vector_getter,
-                    &files,
-                    static_cast<int>(files.size())
-                    );
+                // static int currentFile = 0;
+                // ImVec2 windowSize = ImGui::GetWindowSize();
+                // ImGui::PushItemWidth(windowSize.x - 15);
+                // ImGui::ListBox(
+                //     "",
+                //     &currentFile,
+                //     vector_getter,
+                //     &files,
+                //     static_cast<int>(files.size())
+                //     );
 
                 ImGui::Dummy(ImVec2(0.0f, 1.0f));
                 if (ImGui::Button("Close"))
