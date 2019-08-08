@@ -18,6 +18,9 @@
 
 #include "functions.h"
 
+int windowWidth = 1280,
+    windowHeight = 720;
+
 int main(int argc, char *argv[])
 {
     std::cout << "[" << currentTime(std::chrono::system_clock::now()) << "] " << "Start\n- - -\n\n";
@@ -63,13 +66,26 @@ int main(int argc, char *argv[])
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+    SDL_WindowFlags window_flags = (SDL_WindowFlags)(
+        SDL_WINDOW_OPENGL
+        | SDL_WINDOW_RESIZABLE
+        | SDL_WINDOW_ALLOW_HIGHDPI
+        );
+    SDL_Window *window = SDL_CreateWindow(
+        "Dear ImGui SDL",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        windowWidth,
+        windowHeight,
+        window_flags
+        );
     SDL_SetWindowMinimumSize(window, 500, 300);
     
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     // enable VSync
     SDL_GL_SetSwapInterval(1);
+
+    glViewport(0, 0, windowWidth, windowHeight);
 
     // setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -93,9 +109,12 @@ int main(int argc, char *argv[])
     // colors are set in RGBA, but as float
     ImVec4 background = ImVec4(35/255.0f, 35/255.0f, 35/255.0f, 1.00f);
 
+    glClearColor(background.x, background.y, background.z, background.w);
     bool loop = true;
     while (loop)
     {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -103,6 +122,22 @@ int main(int argc, char *argv[])
             {
             case SDL_QUIT:
                 loop = false;
+                break;
+
+            case SDL_WINDOWEVENT:
+                switch (event.window.event)
+                {
+                case SDL_WINDOWEVENT_RESIZED:
+                    windowWidth = event.window.data1;
+                    windowHeight = event.window.data2;
+                    // std::cout << "[INFO] Window size: "
+                    //           << windowWidth
+                    //           << "x"
+                    //           << windowHeight
+                    //           << std::endl;
+                    glViewport(0, 0, windowWidth, windowHeight);
+                    break;
+                }
                 break;
 
             case SDL_KEYDOWN:
@@ -235,19 +270,12 @@ int main(int argc, char *argv[])
 
             ImGui::End();
         }
-
+        
         // rendering
         ImGui::Render();
-        glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        glClearColor(
-            background.x,
-            background.y,
-            background.z,
-            background.w
-            );
-        glClear(GL_COLOR_BUFFER_BIT);
         //glUseProgram(0); // you may want this if using this code in an OpenGL 3+ context where shaders may be bound
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+        
         SDL_GL_SwapWindow(window);
     }
 
