@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
     //std::cout << linkedVal.str() << std::endl;
 
     // setup SDL window
+
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
@@ -66,7 +67,7 @@ int main(int argc, char *argv[])
         );
 
     std::string glsl_version = "";
-#if __APPLE__
+#ifdef __APPLE__
     // GL 3.2 Core + GLSL 150
     glsl_version = "#version 150";
     SDL_GL_SetAttribute( // required on Mac OS
@@ -75,15 +76,13 @@ int main(int argc, char *argv[])
         );
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-#endif
-#if __linux__
+#elif __linux__
     // GL 3.2 Core + GLSL 150
     glsl_version = "#version 150";
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0); 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-#endif
-#if _WIN32
+#elif _WIN32
     // GL 3.0 + GLSL 130
     glsl_version = "#version 130";
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0); 
@@ -121,6 +120,10 @@ int main(int argc, char *argv[])
     {
         std::cout << "[INFO] glad initialized\n";
     }
+
+    std::cout << "[INFO] OpenGL renderer: "
+              << glGetString(GL_RENDERER)
+              << std::endl;
 
     // apparently, that shows maximum supported version
     std::cout << "[INFO] OpenGL from glad: "
@@ -162,6 +165,7 @@ int main(int argc, char *argv[])
     ImVec4 background = ImVec4(35/255.0f, 35/255.0f, 35/255.0f, 1.00f);
 
     glClearColor(background.x, background.y, background.z, background.w);
+    // --- rendering loop
     bool loop = true;
     while (loop)
     {
