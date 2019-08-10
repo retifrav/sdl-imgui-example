@@ -1,20 +1,16 @@
-// Based on https://github.com/ocornut/imgui/blob/master/examples/example_sdl_opengl2/main.cpp
-
 // don't listen to MS complains, we want cross-platform code
 #define _CRT_SECURE_NO_DEPRECATE
 
 // C++
 //#include <filesystem>
 #include <vector>
-
 // SDL
+#include <glad/glad.h>
 #include <SDL.h>
-#include <SDL_opengl.h>
-
 // Dear ImGui
 #include "imgui-style.h"
 #include "imgui/imgui_impl_sdl.h"
-#include "imgui/imgui_impl_opengl2.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 #include "functions.h"
 
@@ -35,9 +31,9 @@ int main(int argc, char *argv[])
     // }
 
     // initiate SDL
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
-        printf("Error: %s\n", SDL_GetError());
+        printf("[ERROR] %s\n", SDL_GetError());
         return -1;
     }
 
@@ -63,8 +59,37 @@ int main(int argc, char *argv[])
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+
+    SDL_GL_SetAttribute(
+        SDL_GL_CONTEXT_PROFILE_MASK,
+        SDL_GL_CONTEXT_PROFILE_CORE
+        );
+
+    std::string glsl_version = "";
+#if __APPLE__
+    // GL 3.2 Core + GLSL 150
+    glsl_version = "#version 150";
+    SDL_GL_SetAttribute( // required on Mac OS
+        SDL_GL_CONTEXT_FLAGS,
+        SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG
+        );
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#endif
+#if __linux__
+    // GL 3.2 Core + GLSL 150
+    glsl_version = "#version 150";
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0); 
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+#endif
+#if _WIN32
+    // GL 3.0 + GLSL 130
+    glsl_version = "#version 130";
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0); 
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+#endif
     
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(
         SDL_WINDOW_OPENGL
@@ -79,11 +104,40 @@ int main(int argc, char *argv[])
         windowHeight,
         window_flags
         );
+    // limit to which minimum size user can resize the window
     SDL_SetWindowMinimumSize(window, 500, 300);
     
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
+    SDL_GL_MakeCurrent(window, gl_context);
+    
     // enable VSync
     SDL_GL_SetSwapInterval(1);
+
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
+    {
+        std::cerr << "[ERROR] Couldn't initialize glad" << std::endl;
+    }
+    else
+    {
+        std::cout << "[INFO] glad initialized\n";
+    }
+
+    // apparently, that shows maximum supported version
+    std::cout << "[INFO] OpenGL from glad: "
+              << GLVersion.major
+              << "."
+              << GLVersion.minor
+              << std::endl;
+
+    // int sdlOpenGLmajor = 0,
+    //     sdlOpenGLminor = 0;
+    // SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &sdlOpenGLmajor);
+    // SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &sdlOpenGLminor);
+    // std::cout << "[INFO] OpenGL from SDL: "
+    //           << sdlOpenGLmajor
+    //           << "."
+    //           << sdlOpenGLminor
+    //           << std::endl;
 
     glViewport(0, 0, windowWidth, windowHeight);
 
@@ -91,8 +145,6 @@ int main(int argc, char *argv[])
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
     io.Fonts->AddFontFromFileTTF("verdana.ttf", 18.0f, NULL, NULL);
 
     // setup Dear ImGui style
@@ -102,7 +154,7 @@ int main(int argc, char *argv[])
 
     // setup platform/renderer bindings
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
-    ImGui_ImplOpenGL2_Init();
+    ImGui_ImplOpenGL3_Init(glsl_version.c_str());
 
     bool show_demo_window = false;
     bool show_another_window = false;
@@ -118,6 +170,11 @@ int main(int argc, char *argv[])
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
+            // without it you won't have keyboard input and other things
+            ImGui_ImplSDL2_ProcessEvent(&event);
+            // you might also want to check io.WantCaptureMouse and io.WantCaptureKeyboard
+            // before processing events
+
             switch (event.type)
             {
             case SDL_QUIT:
@@ -152,7 +209,7 @@ int main(int argc, char *argv[])
         }
 
         // start the Dear ImGui frame
-        ImGui_ImplOpenGL2_NewFrame();
+        ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window);
         ImGui::NewFrame();
 
@@ -273,13 +330,12 @@ int main(int argc, char *argv[])
         
         // rendering
         ImGui::Render();
-        //glUseProgram(0); // you may want this if using this code in an OpenGL 3+ context where shaders may be bound
-        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         
         SDL_GL_SwapWindow(window);
     }
 
-    ImGui_ImplOpenGL2_Shutdown();
+    ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
 
