@@ -107,6 +107,12 @@ int main(int argc, char *argv[])
     SDL_SetWindowMinimumSize(window, 500, 300);
     
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
+    if (gl_context == NULL)
+    {
+        std::cerr << "[ERROR] Failed to create a GL context: "
+                  << SDL_GetError() << std::endl;
+        return -1;
+    }
     SDL_GL_MakeCurrent(window, gl_context);
     
     // enable VSync
@@ -115,10 +121,11 @@ int main(int argc, char *argv[])
     if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
     {
         std::cerr << "[ERROR] Couldn't initialize glad" << std::endl;
+        return -1;
     }
     else
     {
-        std::cout << "[INFO] glad initialized\n";
+        std::cout << "[INFO] glad initialized" << std::endl;
     }
 
     std::cout << "[INFO] OpenGL renderer: "
