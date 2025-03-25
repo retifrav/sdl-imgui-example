@@ -1,4 +1,6 @@
-build/*
-lib/*
-.vscode/*
+/build
+/install
+
+/.vscode
+
 imgui.ini

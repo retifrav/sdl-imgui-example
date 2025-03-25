@@ -1,0 +1,12 @@
+{
+    "name": "sdl-imgui-example",
+    "version": "0",
+    "dependencies":
+    [
+        "glad",
+        "sdl"
+    ],
+    "overrides":
+    [
+    ]
+}

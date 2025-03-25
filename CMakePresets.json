@@ -1,0 +1,54 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired":
+    {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets":
+    [
+        {
+            "name": "default",
+            "displayName": "Default configuration",
+            "description": "Default configuration with all the options set to their default values",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "installDir": "${sourceDir}/install/${presetName}",
+            "generator": "Ninja",
+            "cacheVariables":
+            {
+                "CMAKE_BUILD_TYPE":
+                {
+                    "type": "STRING",
+                    "value": "Release"
+                }
+            }
+        },
+        {
+            "name": "vcpkg-default-triplet",
+            "inherits": "default",
+            "displayName": "vcpkg | default triplet",
+            "cacheVariables":
+            {
+                "CMAKE_TOOLCHAIN_FILE":
+                {
+                    "type": "FILEPATH",
+                    "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+                }
+            }
+        }
+    ],
+    "buildPresets":
+    [
+        {
+            "name": "default",
+            "configurePreset": "default",
+            "targets": "install"
+        },
+        {
+            "name": "vcpkg-default-triplet",
+            "configurePreset": "vcpkg-default-triplet",
+            "targets": "install"
+        }
+    ]
+}
