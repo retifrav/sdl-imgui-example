@@ -40,12 +40,13 @@ target_sources(${CMAKE_PROJECT_NAME}
         ${sources}
 )
 
-cmake_policy(PUSH)
-if(POLICY CMP0072)
-    cmake_policy(SET CMP0072 NEW) # prefer GLVND
-endif()
+# seems to be redundant, as CMake 3.22 is explicitly required
+#cmake_policy(PUSH)
+#if(POLICY CMP0072)
+#    cmake_policy(SET CMP0072 NEW) # prefer GLVND
+#endif()
 find_package(OpenGL REQUIRED)
-cmake_policy(POP)
+#cmake_policy(POP)
 
 find_package(glad CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
